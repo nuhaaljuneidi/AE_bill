@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy3D Electricity Cost Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px 30px;
+        }
+
+        /* --- HEADER STYLES --- */
+        .header-section {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .creator-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        .creator-name {
+            font-weight: 700;
+            color: #555;
+        }
+
+        .creator-divider {
+            color: #ddd;
+        }
+
+        .creator-tag {
+            color: #667eea;
+            font-weight: 600;
+            background: #eff2fc;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 8px;
+            margin-top: 10px;
+            font-size: 2.2em;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 1.15em;
+            font-weight: 400;
+        }
+
+        /* --- STUDENT INPUT STYLES --- */
+        .student-input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+            .student-input-container label {
+                font-weight: 700;
+                color: #4a5568;
+                font-size: 1.1em;
+                white-space: nowrap;
+            }
+
+        #student-name {
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1em;
+            width: 100%;
+            max-width: 420px;
+            transition: all 0.2s ease;
+            background-color: #fcfcfc;
+        }
+
+            #student-name:focus {
+                outline: none;
+                border-color: #667eea;
+                background-color: #fff;
+                box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            }
+
+        .intro-questions {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* --- COMPARISON CARD STYLES --- */
+        .comparison-selector {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #dee2e6;
+        }
+
+        .compare-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+            .compare-header h3 {
+                margin: 0;
+                text-align: left;
+                color: #333;
+                font-size: 1.4em;
+            }
+
+        /* Rate Inline Toolbar */
+        .rate-inline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+            .rate-inline label {
+                font-weight: 700;
+                color: #4a5568;
+                font-size: 0.95em;
+                white-space: nowrap;
+                margin: 0;
+            }
+
+            .rate-inline select,
+            .rate-inline input {
+                padding: 8px 10px;
+                border-radius: 10px;
+                border: 2px solid #e2e8f0;
+                font-size: 0.95em;
+                background: #fff;
+                cursor: pointer;
+            }
+
+            .rate-inline input {
+                width: 110px;
+                display: none; /* only show when Custom selected */
+            }
+
+        .rate-pill {
+            background: #eff6ff;
+            color: #667eea;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(102,126,234,0.25);
+            white-space: nowrap;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .compare-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .rate-inline {
+                justify-content: flex-start;
+                width: 100%;
+            }
+
+            .compare-header h3 {
+                margin-bottom: 10px;
+            }
+        }
+
+        .comparison-buttons {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .comparison-buttons {
+                grid-template-columns: repeat(6, 160px);
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+        }
+
+        /* UPDATED BUTTON STYLES */
+        .compare-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 15px 5px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            min-height: 140px;
+            justify-content: center;
+            position: relative;
+        }
+
+            .compare-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+                border-color: #b3c0e6;
+            }
+
+            .compare-btn.active {
+                background: #eff6ff;
+                border-color: #667eea;
+                border-width: 3px;
+                color: #5a67d8;
+                transform: scale(1.02);
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+            }
+
+        .btn-icon {
+            width: 100px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .btn-icon svg {
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+
+        .btn-label {
+            font-weight: 700;
+            font-size: 0.9em;
+            text-align: center;
+            line-height: 1.3;
+            color: #4a5568;
+        }
+
+        .compare-btn.active .btn-label {
+            color: #667eea;
+        }
+
+        .selected-comparison {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            font-size: 1.1em;
+            box-shadow: 0 4px 12px rgba(118, 75, 162, 0.3);
+        }
+
+            .selected-comparison strong {
+                font-size: 1.2em;
+            }
+
+        /* --- NEW ANIMATIONS --- */
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes floatHorizontal {
+            0%, 100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(3px);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
+
+        .compare-btn.active .btn-icon {
+            animation: pop 0.4s ease-out;
+        }
+
+        /* SVG Specific Animations */
+        .anim-spin {
+            transform-origin: 50% 10%; /* Adjust for sun center */
+            animation: spin 8s linear infinite;
+        }
+
+        .anim-float {
+            animation: floatHorizontal 2s ease-in-out infinite;
+        }
+
+        .anim-pulse {
+            transform-origin: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .instructions {
+            background: #f0f8ff;
+            border-left: 4px solid #4a90e2;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+            .instructions h3 {
+                color: #4a90e2;
+                margin-bottom: 10px;
+            }
+
+            .instructions ol {
+                margin-left: 20px;
+            }
+
+            .instructions li {
+                margin-bottom: 8px;
+                line-height: 1.6;
+            }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .house-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+            transition: transform 0.2s;
+        }
+
+            .house-card:focus-within {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+            .house-card.t-shape {
+                border-color: #e74c3c;
+            }
+
+            .house-card.rectangular {
+                border-color: #3498db;
+            }
+
+            .house-card h2 {
+                margin-bottom: 15px;
+                text-align: center;
+            }
+
+            .house-card.t-shape h2 {
+                color: #e74c3c;
+            }
+
+            .house-card.rectangular h2 {
+                color: #3498db;
+            }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+            .input-group label {
+                display: block;
+                font-weight: 600;
+                margin-bottom: 5px;
+                color: #495057;
+            }
+
+            .input-group input {
+                width: 100%;
+                padding: 10px;
+                border: 2px solid #ced4da;
+                border-radius: 5px;
+                font-size: 16px;
+                transition: all 0.3s;
+            }
+
+                .input-group input:focus {
+                    outline: none;
+                    border-color: #4a90e2;
+                    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+                }
+
+        .calc-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .calc-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            }
+
+            .calc-button:active {
+                transform: translateY(0);
+            }
+
+        .results-section {
+            margin-top: 40px;
+        }
+
+            .results-section h2 {
+                color: #333;
+                margin-bottom: 20px;
+                text-align: center;
+                font-size: 1.8em;
+            }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+            .result-card h3 {
+                margin-bottom: 15px;
+                font-size: 1.3em;
+                text-align: center;
+            }
+
+            .result-card.t-shape {
+                border-color: #e74c3c;
+            }
+
+                .result-card.t-shape h3 {
+                    color: #e74c3c;
+                }
+
+            .result-card.rectangular {
+                border-color: #3498db;
+            }
+
+                .result-card.rectangular h3 {
+                    color: #3498db;
+                }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: #2ecc71;
+            font-size: 1.1em;
+        }
+
+        /* --- VISUAL BAR CHART STYLES --- */
+        .bar-container {
+            height: 12px;
+            background-color: #e2e8f0;
+            border-radius: 6px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 6px;
+            transition: width 1s ease-out;
+        }
+
+        .result-card.t-shape .bar-fill {
+            background: linear-gradient(90deg, #fc8181, #e74c3c);
+        }
+
+        .result-card.rectangular .bar-fill {
+            background: linear-gradient(90deg, #63b3ed, #3498db);
+        }
+
+        .comparison-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+            .comparison-section h3 {
+                text-align: center;
+                margin-bottom: 20px;
+                font-size: 1.5em;
+            }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+
+        .comparison-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+            .comparison-item .label {
+                font-size: 0.9em;
+                margin-bottom: 8px;
+                opacity: 0.9;
+            }
+
+            .comparison-item .value {
+                font-size: 1.5em;
+                font-weight: 700;
+            }
+
+        .winner-section {
+            background: #2ecc71;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .note {
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin-top: 30px;
+            border-radius: 5px;
+            font-size: 0.95em;
+            color: #0c5460;
+        }
+
+        @media (max-width: 768px) {
+            .input-section,
+            .results-grid,
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header-section">
+            <div class="creator-info">
+                <span class="creator-name">Dr. Nuha AlJuneidi</span>
+                <span class="creator-divider">|</span>
+                <span>Lawrence Technological University</span>
+                <span class="creator-divider">|</span>
+                <span class="creator-tag">🎓 Engineering Day</span>
+            </div>
+        </div>
+
+        <h1>⚡ Energy3D Electricity Cost Calculator</h1>
+        <p class="subtitle">How much will you pay for electricity?</p>
+
+        <!-- STUDENT INPUT -->
+        <div class="student-input-container">
+            <label for="student-name">👤 Student Name:</label>
+            <input id="student-name" type="text" placeholder="Type your name here...">
+        </div>
+
+        <div class="intro-questions">
+            <p style="font-size: 1.2em; margin: 0;">
+                <strong>Does your building design affect your electric bill?</strong><br>
+                Let's find out! Use your Energy3D results to calculate costs.
+            </p>
+        </div>
+
+        <div class="comparison-selector">
+            <div class="compare-header">
+                <h3>🎯 What are you comparing?</h3>
+
+                <div class="rate-inline">
+                    <label for="state-select">📍 State:</label>
+                    <select id="state-select" onchange="updateRate()">
+                        <option value="0.14">Michigan - $0.14/kWh</option>
+                        <option value="0.12">Alabama - $0.12/kWh</option>
+                        <option value="0.13">Arizona - $0.13/kWh</option>
+                        <option value="0.11">Arkansas - $0.11/kWh</option>
+                        <option value="0.22">California - $0.22/kWh</option>
+                        <option value="0.14">Colorado - $0.14/kWh</option>
+                        <option value="0.22">Connecticut - $0.22/kWh</option>
+                        <option value="0.13">Delaware - $0.13/kWh</option>
+                        <option value="0.12">Florida - $0.12/kWh</option>
+                        <option value="0.13">Georgia - $0.13/kWh</option>
+                        <option value="0.31">Hawaii - $0.31/kWh</option>
+                        <option value="0.11">Idaho - $0.11/kWh</option>
+                        <option value="0.13">Illinois - $0.13/kWh</option>
+                        <option value="0.13">Indiana - $0.13/kWh</option>
+                        <option value="0.12">Iowa - $0.12/kWh</option>
+                        <option value="0.13">Kansas - $0.13/kWh</option>
+                        <option value="0.11">Kentucky - $0.11/kWh</option>
+                        <option value="0.10">Louisiana - $0.10/kWh</option>
+                        <option value="0.16">Maine - $0.16/kWh</option>
+                        <option value="0.14">Maryland - $0.14/kWh</option>
+                        <option value="0.23">Massachusetts - $0.23/kWh</option>
+                        <option value="0.17">Minnesota - $0.17/kWh</option>
+                        <option value="0.12">Mississippi - $0.12/kWh</option>
+                        <option value="0.11">Missouri - $0.11/kWh</option>
+                        <option value="0.11">Montana - $0.11/kWh</option>
+                        <option value="0.11">Nebraska - $0.11/kWh</option>
+                        <option value="0.12">Nevada - $0.12/kWh</option>
+                        <option value="0.20">New Hampshire - $0.20/kWh</option>
+                        <option value="0.16">New Jersey - $0.16/kWh</option>
+                        <option value="0.13">New Mexico - $0.13/kWh</option>
+                        <option value="0.18">New York - $0.18/kWh</option>
+                        <option value="0.12">North Carolina - $0.12/kWh</option>
+                        <option value="0.11">North Dakota - $0.11/kWh</option>
+                        <option value="0.13">Ohio - $0.13/kWh</option>
+                        <option value="0.11">Oklahoma - $0.11/kWh</option>
+                        <option value="0.11">Oregon - $0.11/kWh</option>
+                        <option value="0.14">Pennsylvania - $0.14/kWh</option>
+                        <option value="0.22">Rhode Island - $0.22/kWh</option>
+                        <option value="0.13">South Carolina - $0.13/kWh</option>
+                        <option value="0.12">South Dakota - $0.12/kWh</option>
+                        <option value="0.12">Tennessee - $0.12/kWh</option>
+                        <option value="0.12">Texas - $0.12/kWh</option>
+                        <option value="0.11">Utah - $0.11/kWh</option>
+                        <option value="0.18">Vermont - $0.18/kWh</option>
+                        <option value="0.12">Virginia - $0.12/kWh</option>
+                        <option value="0.10">Washington - $0.10/kWh</option>
+                        <option value="0.12">West Virginia - $0.12/kWh</option>
+                        <option value="0.14">Wisconsin - $0.14/kWh</option>
+                        <option value="0.11">Wyoming - $0.11/kWh</option>
+                        <option value="custom">Custom Rate...</option>
+                    </select>
+                    <input type="number" id="custom-rate-input" placeholder="Enter rate" step="0.01" min="0"
+                           oninput="updateCustomRate()">
+                    <span id="rate-display" class="rate-pill">$0.14/kWh</span>
+                </div>
+            </div>
+
+            <!-- BUTTONS WITH ANIMATED SVGS -->
+            <div class="comparison-buttons">
+                <!-- 1) Shapes (Blue Rect vs Red T-Shape) -->
+                <button class="compare-btn active" onclick="selectComparison('shapes', this)">
+                    <div class="btn-icon">
+                        <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Left: Blue House -->
+                            <rect x="5" y="25" width="35" height="25" fill="#CBD5E0" rx="2" />
+                            <path d="M5 25 L22.5 10 L40 25" fill="#4299E1" />
+                            <rect x="18" y="35" width="10" height="15" fill="#4A5568" />
+
+                            <!-- Divider -->
+                            <path d="M50 5 v50" stroke="#CBD5E0" stroke-width="2" stroke-dasharray="4,4" />
+
+                            <!-- Right: Red T-House -->
+                            <rect x="60" y="25" width="35" height="25" fill="#CBD5E0" rx="2" />
+                            <path d="M60 25 L77.5 10 L95 25" fill="#F56565" /> <!-- Red Roof -->
+                            <rect x="90" y="30" width="12" height="20" fill="#CBD5E0" rx="1" /> <!-- Side Wing -->
+                            <path d="M90 30 L96 22 L102 30" fill="#F56565" /> <!-- Wing Roof -->
+                        </svg>
+                    </div>
+                    <div class="btn-label">Different<br>Shapes</div>
+                </button>
+
+                <!-- 2) Sizes (Big vs Small) -->
+                <button class="compare-btn" onclick="selectComparison('sizes', this)">
+                    <div class="btn-icon">
+                        <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Left: Large House -->
+                            <g class="anim-pulse">
+                                <rect x="2" y="15" width="36" height="35" fill="#E9D8FD" rx="2" />
+                                <path d="M2 15 L20 2 L38 15" fill="#9F7AEA" />
+                                <rect x="8" y="20" width="8" height="8" fill="#FFFFFF" />
+                                <rect x="24" y="20" width="8" height="8" fill="#FFFFFF" />
+                                <rect x="8" y="35" width="8" height="8" fill="#FFFFFF" />
+                                <rect x="24" y="35" width="8" height="15" fill="#553C9A" />
+                            </g>
+                            <!-- Divider -->
+                            <path d="M50 5 v50" stroke="#CBD5E0" stroke-width="2" stroke-dasharray="4,4" />
+
+                            <!-- Right: Tiny House -->
+                            <rect x="65" y="30" width="25" height="20" fill="#C6F6D5" rx="2" />
+                            <path d="M65 30 L77.5 20 L90 30" fill="#48BB78" />
+                            <rect x="73" y="38" width="8" height="12" fill="#276749" />
+                        </svg>
+                    </div>
+                    <div class="btn-label">Different<br>Sizes</div>
+                </button>
+
+                <!-- 3) Insulation (Thick Pink vs Thin) -->
+                <button class="compare-btn" onclick="selectComparison('insulation', this)">
+                    <div class="btn-icon">
+                        <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Left: Thick -->
+                            <path d="M5 25 L25 10 L45 25" fill="none" stroke="#2D3748" stroke-width="3" />
+                            <path d="M10 25 L25 14 L40 25" fill="#F687B3" opacity="0.8" />
+                            <!-- Pink stuffing animation -->
+                            <g class="anim-pulse">
+                                <path d="M10 28 Q 18 32 25 28 T 40 28" stroke="#F687B3" stroke-width="3" fill="none" />
+                                <path d="M10 32 Q 18 36 25 32 T 40 32" stroke="#F687B3" stroke-width="3" fill="none" />
+                            </g>
+                            <!-- Divider -->
+                            <path d="M50 5 v50" stroke="#CBD5E0" stroke-width="2" stroke-dasharray="4,4" />
+                            <!-- Right: Thin -->
+                            <path d="M55 25 L75 10 L95 25" fill="none" stroke="#2D3748" stroke-width="3" />
+                            <path d="M60 25 L90 25" stroke="#718096" stroke-width="1" />
+                        </svg>
+                    </div>
+                    <div class="btn-label">Roof<br>Insulation</div>
+                </button>
+
+                <!-- 4) Roof Colors (Black vs White) -->
+                <button class="compare-btn" onclick="selectComparison('colors', this)">
+                    <div class="btn-icon">
+                        <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Sun centered with Animation -->
+                            <g class="anim-spin" style="transform-origin: 50% 10%;">
+                                <circle cx="50" cy="10" r="6" fill="#ECC94B" />
+                                <path d="M50 2 v4 M50 14 v4 M42 10 h4 M54 10 h4" stroke="#ECC94B" stroke-width="2" />
+                            </g>
+
+                            <!-- Left: Dark Roof -->
+                            <rect x="5" y="30" width="30" height="20" fill="#CBD5E0" />
+                            <path d="M2 30 L20 18 L38 30" fill="#1A202C" />
+
+                            <!-- Divider -->
+                            <path d="M50 25 v30" stroke="#CBD5E0" stroke-width="2" stroke-dasharray="4,4" />
+
+                            <!-- Right: White Roof -->
+                            <rect x="65" y="30" width="30" height="20" fill="#CBD5E0" />
+                            <path d="M62 30 L80 18 L98 30" fill="#EDF2F7" stroke="#718096" stroke-width="1" />
+                        </svg>
+                    </div>
+                    <div class="btn-label">Roof<br>Colors</div>
+                </button>
+
+                <!-- 5) Orientation (Arrows) -->
+                <button class="compare-btn" onclick="selectComparison('orientation', this)">
+                    <div class="btn-icon">
+                        <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Left: Arrow Front -->
+                            <rect x="10" y="25" width="25" height="20" fill="#CBD5E0" />
+                            <path d="M7 25 L22.5 15 L38 25" fill="#4A5568" />
+
+                            <!-- Animated Arrow -->
+                            <g class="anim-float">
+                                <path d="M22.5 55 L22.5 35" stroke="#ECC94B" stroke-width="4" />
+                                <path d="M22.5 35 l-3 5 h6 z" fill="#ECC94B" />
+                            </g>
+
+                            <!-- Divider -->
+                            <path d="M50 5 v50" stroke="#CBD5E0" stroke-width="2" stroke-dasharray="4,4" />
+
+                            <!-- Right: Arrow Side -->
+                            <rect x="65" y="25" width="25" height="20" fill="#CBD5E0" />
+                            <path d="M62 25 L77.5 15 L93 25" fill="#4A5568" />
+
+                            <!-- Animated Arrow -->
+                            <g class="anim-float" style="animation-delay: 0.5s;">
+                                <path d="M55 35 L70 35" stroke="#ECC94B" stroke-width="4" />
+                                <path d="M70 35 l-5 -3 v6 z" fill="#ECC94B" />
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="btn-label">Different<br>Orientations</div>
+                </button>
+
+                <!-- 6) Thermostat (Red vs Blue) -->
+                <button class="compare-btn" onclick="selectComparison('thermostat', this)">
+                    <div class="btn-icon">
+                        <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Left: Hot -->
+                            <g class="anim-pulse">
+                                <circle cx="25" cy="30" r="18" fill="#FED7D7" stroke="#F56565" stroke-width="2" />
+                                <text x="25" y="34" font-family="Arial" font-size="10" font-weight="bold" fill="#C53030" text-anchor="middle">72°</text>
+                            </g>
+                            <!-- Divider -->
+                            <path d="M50 5 v50" stroke="#CBD5E0" stroke-width="2" stroke-dasharray="4,4" />
+
+                            <!-- Right: Cold -->
+                            <circle cx="75" cy="30" r="18" fill="#C3DAFE" stroke="#4299E1" stroke-width="2" />
+                            <text x="75" y="34" font-family="Arial" font-size="10" font-weight="bold" fill="#2B6CB0" text-anchor="middle">68°</text>
+                        </svg>
+                    </div>
+                    <div class="btn-label">Thermostat<br>Settings</div>
+                </button>
+            </div>
+
+            <div class="selected-comparison">
+                Currently comparing: <strong id="comparison-text">Different Shapes</strong>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <!-- House 1 -->
+            <div class="house-card t-shape">
+                <h2 id="house1-title">🏠 T-Shaped House</h2>
+
+                <div class="input-group">
+                    <label for="house1-jan">January 1 Energy (kWh):</label>
+                    <input type="number" id="house1-jan" placeholder="e.g., 97.3" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label for="house1-jul">July 1 Energy (kWh):</label>
+                    <input type="number" id="house1-jul" placeholder="e.g., 33.1" step="0.1">
+                </div>
+            </div>
+
+            <!-- House 2 -->
+            <div class="house-card rectangular">
+                <h2 id="house2-title">🏠 Rectangular House</h2>
+
+                <div class="input-group">
+                    <label for="house2-jan">January 1 Energy (kWh):</label>
+                    <input type="number" id="house2-jan" placeholder="e.g., 85.8" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label for="house2-jul">July 1 Energy (kWh):</label>
+                    <input type="number" id="house2-jul" placeholder="e.g., 38.2" step="0.1">
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <button onclick="calculateAll()" class="calc-button">
+                🔢 Calculate Costs
+            </button>
+        </div>
+
+        <div class="results-section">
+            <h2>💰 Electricity Cost Results</h2>
+
+            <div class="results-grid">
+                <!-- House 1 Results -->
+                <div class="result-card t-shape">
+                    <h3 id="result-house1-title">T-Shaped House</h3>
+
+                    <div class="result-item">
+                        <span class="result-label">Daily Average:</span>
+                        <span class="result-value" id="house1-daily">$0.00</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="result-label">Monthly Est:</span>
+                        <span class="result-value" id="house1-monthly">$0.00</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="result-label">Annual Est:</span>
+                        <span class="result-value" id="house1-annual">$0.00</span>
+                    </div>
+
+                    <!-- New Visual Bar -->
+                    <div class="bar-container">
+                        <div id="house1-bar" class="bar-fill"></div>
+                    </div>
+                </div>
+
+                <!-- House 2 Results -->
+                <div class="result-card rectangular">
+                    <h3 id="result-house2-title">Rectangular House</h3>
+
+                    <div class="result-item">
+                        <span class="result-label">Daily Average:</span>
+                        <span class="result-value" id="house2-daily">$0.00</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="result-label">Monthly Est:</span>
+                        <span class="result-value" id="house2-monthly">$0.00</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="result-label">Annual Est:</span>
+                        <span class="result-value" id="house2-annual">$0.00</span>
+                    </div>
+
+                    <!-- New Visual Bar -->
+                    <div class="bar-container">
+                        <div id="house2-bar" class="bar-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-section">
+                <h3>📊 Which House Saves You Money?</h3>
+
+                <div class="comparison-grid">
+                    <div class="comparison-item">
+                        <div class="label">Daily Savings</div>
+                        <div class="value" id="savings-daily">$0.00</div>
+                    </div>
+
+                    <div class="comparison-item">
+                        <div class="label">Monthly Savings</div>
+                        <div class="value" id="savings-monthly">$0.00</div>
+                    </div>
+
+                    <div class="comparison-item">
+                        <div class="label">Annual Savings</div>
+                        <div class="value" id="savings-annual">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="winner-section" id="winner-text">
+                    Enter all four energy values to see which design saves money!
+                </div>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Note:</strong> Annual costs are estimations based on the average of your Summer (July 1) and Winter (January 1) data points. Actual costs may vary based on weather, usage patterns, and daily fluctuations.
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentRate = 0.14;
+        let comparisonType = 'shapes';
+
+        // House labels configuration
+        const houseLabels = {
+            shapes: { h1: "T-Shaped House", h2: "Rectangular House" },
+            sizes: { h1: "Large House", h2: "Small House" },
+            insulation: { h1: "Thick Insulation", h2: "Thin Insulation" },
+            colors: { h1: "Dark Roof House", h2: "Light Roof House" },
+            orientation: { h1: "North-South House", h2: "East-West House" },
+            thermostat: { h1: "High Setting (72°F)", h2: "Low Setting (68°F)" }
+        };
+
+        // Handle Comparison Selection
+        function selectComparison(type, btnElement) {
+            comparisonType = type;
+
+            // Update active button visual
+            document.querySelectorAll('.compare-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // Update text labels
+            const labels = houseLabels[type];
+            document.getElementById('comparison-text').textContent = document.querySelector('.compare-btn.active .btn-label').textContent.replace('\n', ' ');
+
+            // Update House Input Titles
+            document.getElementById('house1-title').textContent = '🏠 ' + labels.h1;
+            document.getElementById('house2-title').textContent = '🏠 ' + labels.h2;
+
+            // Update Result Titles
+            document.getElementById('result-house1-title').textContent = labels.h1;
+            document.getElementById('result-house2-title').textContent = labels.h2;
+
+            // Clear previous results to avoid confusion
+            resetResults();
+        }
+
+        // Handle Rate Changes
+        function updateRate() {
+            const select = document.getElementById('state-select');
+            const customInput = document.getElementById('custom-rate-input');
+            const display = document.getElementById('rate-display');
+
+            if (select.value === 'custom') {
+                customInput.style.display = 'inline-block';
+                currentRate = parseFloat(customInput.value) || 0;
+            } else {
+                customInput.style.display = 'none';
+                currentRate = parseFloat(select.value);
+            }
+
+            display.textContent = `$${currentRate.toFixed(2)}/kWh`;
+
+            // Recalculate if data exists
+            if (hasData()) calculateAll();
+        }
+
+        function updateCustomRate() {
+            const input = document.getElementById('custom-rate-input');
+            currentRate = parseFloat(input.value) || 0;
+            document.getElementById('rate-display').textContent = `$${currentRate.toFixed(2)}/kWh`;
+            if (hasData()) calculateAll();
+        }
+
+        // Check if inputs have values
+        function hasData() {
+            return document.getElementById('house1-jan').value &&
+                   document.getElementById('house1-jul').value;
+        }
+
+        function resetResults() {
+            const zeros = ['$0.00', '$0.00', '$0.00'];
+            ['house1', 'house2'].forEach(house => {
+                document.getElementById(`${house}-daily`).textContent = zeros[0];
+                document.getElementById(`${house}-monthly`).textContent = zeros[1];
+                document.getElementById(`${house}-annual`).textContent = zeros[2];
+                document.getElementById(`${house}-bar`).style.width = '0%';
+            });
+            document.getElementById('savings-daily').textContent = '$0.00';
+            document.getElementById('savings-monthly').textContent = '$0.00';
+            document.getElementById('savings-annual').textContent = '$0.00';
+            document.getElementById('winner-text').textContent = "Enter all four energy values to see which design saves money!";
+            document.getElementById('winner-text').style.background = '#2ecc71';
+            document.getElementById('winner-text').style.color = 'white';
+        }
+
+        // Animate count up for numbers
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const currentVal = start + (end - start) * progress;
+                obj.textContent = formatMoney(currentVal);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Main Calculation Function
+        function calculateAll() {
+            // Get inputs
+            const h1Jan = parseFloat(document.getElementById('house1-jan').value) || 0;
+            const h1Jul = parseFloat(document.getElementById('house1-jul').value) || 0;
+            const h2Jan = parseFloat(document.getElementById('house2-jan').value) || 0;
+            const h2Jul = parseFloat(document.getElementById('house2-jul').value) || 0;
+
+            // 1. Calculate Averages (Daily kWh)
+            const h1AvgDailyKwh = (h1Jan + h1Jul) / 2;
+            const h2AvgDailyKwh = (h2Jan + h2Jul) / 2;
+
+            // 2. Calculate Costs
+            const h1DailyCost = h1AvgDailyKwh * currentRate;
+            const h1MonthlyCost = h1DailyCost * 30;
+            const h1AnnualCost = h1DailyCost * 365;
+
+            const h2DailyCost = h2AvgDailyKwh * currentRate;
+            const h2MonthlyCost = h2DailyCost * 30;
+            const h2AnnualCost = h2DailyCost * 365;
+
+            // 3. Update DOM with Animations
+            // House 1
+            animateValue(document.getElementById('house1-daily'), 0, h1DailyCost, 800);
+            animateValue(document.getElementById('house1-monthly'), 0, h1MonthlyCost, 800);
+            animateValue(document.getElementById('house1-annual'), 0, h1AnnualCost, 800);
+
+            // House 2
+            animateValue(document.getElementById('house2-daily'), 0, h2DailyCost, 800);
+            animateValue(document.getElementById('house2-monthly'), 0, h2MonthlyCost, 800);
+            animateValue(document.getElementById('house2-annual'), 0, h2AnnualCost, 800);
+
+            // 4. Update Visual Bars (Annual Cost as reference)
+            const maxCost = Math.max(h1AnnualCost, h2AnnualCost, 1); // Avoid div by zero
+            document.getElementById('house1-bar').style.width = `${(h1AnnualCost / maxCost) * 100}%`;
+            document.getElementById('house2-bar').style.width = `${(h2AnnualCost / maxCost) * 100}%`;
+
+            // 5. Calculate Savings
+            const dailyDiff = Math.abs(h1DailyCost - h2DailyCost);
+            const monthlyDiff = Math.abs(h1MonthlyCost - h2MonthlyCost);
+            const annualDiff = Math.abs(h1AnnualCost - h2AnnualCost);
+
+            animateValue(document.getElementById('savings-daily'), 0, dailyDiff, 1000);
+            animateValue(document.getElementById('savings-monthly'), 0, monthlyDiff, 1000);
+            animateValue(document.getElementById('savings-annual'), 0, annualDiff, 1000);
+
+            // 6. Determine Winner
+            const winnerDiv = document.getElementById('winner-text');
+            const labels = houseLabels[comparisonType];
+
+            winnerDiv.style.color = 'white';
+
+            if (h1AnnualCost < h2AnnualCost) {
+                winnerDiv.innerHTML = `🏆 The <strong>${labels.h1}</strong> saves you <strong>${formatMoney(annualDiff)}</strong> per year!`;
+                winnerDiv.style.background = '#e74c3c'; // Red/Pink to match House 1
+            } else if (h2AnnualCost < h1AnnualCost) {
+                winnerDiv.innerHTML = `🏆 The <strong>${labels.h2}</strong> saves you <strong>${formatMoney(annualDiff)}</strong> per year!`;
+                winnerDiv.style.background = '#3498db'; // Blue to match House 2
+            } else if (h1AnnualCost === 0 && h2AnnualCost === 0) {
+                 winnerDiv.textContent = "Please enter energy values above.";
+                 winnerDiv.style.background = '#95a5a6';
+            } else {
+                winnerDiv.textContent = "Both houses cost exactly the same!";
+                winnerDiv.style.background = '#f1c40f';
+                winnerDiv.style.color = '#333';
+            }
+        }
+
+        function formatMoney(amount) {
+            return '$' + amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+    </script>
+</body>
+</html>
