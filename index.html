@@ -733,7 +733,7 @@
         <!-- STUDENT INPUT -->
         <div class="student-input-container">
             <label for="student-name">👤 Student Name:</label>
-            <input id="student-name" type="text" placeholder="Type your name here...">
+            <input id="student-name" type="text" placeholder="Your name will appear here..." readonly>
         </div>
 
         <div class="intro-questions">
@@ -1087,24 +1087,23 @@
     <script>
         // State management
         let currentRate = 0.14;
-        // Always clear name field on refresh
-        window.addEventListener('load', () => {
-            const nameInput = document.getElementById('student-name');
-            if (nameInput) nameInput.value = '';
-        });
+     
         // --- Name Gate (locks page until a name is entered) ---
 function lockPage() {
   document.body.classList.add('page-locked');
+  document.body.style.overflow = 'hidden'; // stop scrolling under the popup
   document.getElementById('name-gate').style.display = 'flex';
 }
 
 function unlockPage(studentName) {
   document.body.classList.remove('page-locked');
+  document.body.style.overflow = ''; // restore scrolling
   document.getElementById('name-gate').style.display = 'none';
 
-  // Put the name into your existing input box
+  // Put the name into the main page box
   document.getElementById('student-name').value = studentName;
 }
+
 
 window.addEventListener('load', () => {
   // Always clear the student name on refresh
@@ -1312,4 +1311,5 @@ window.addEventListener('load', () => {
     </script>
 </body>
 </html>
+
 
