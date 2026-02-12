@@ -1084,256 +1084,237 @@
         </div>
     </div>
 
-    <script>
-        
-        // State management
-        let currentRate = 0.14;
-     
-        // --- Name Gate (locks page until a name is entered) ---
-function lockPage() {
-  document.body.classList.add('page-locked');
-  document.body.style.overflow = 'hidden'; // stop scrolling under the popup
-  document.getElementById('name-gate').style.display = 'flex';
-}
+   <script>
+  // State management
+  let currentRate = 0.14;
 
-function unlockPage(studentName) {
-  document.body.classList.remove('page-locked');
-  document.body.style.overflow = '';
-  document.getElementById('name-gate').style.display = 'none';
+  // ✅ Your Google Apps Script Web App URL
+  const SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw_FJpAiEAwYRn3JkBXmSanLxjtrrZoaaXgseYQzAywXlGzXle7zkLelttjWUv66HqZ/exec";
 
-  document.getElementById('student-name').value = studentName;
+  function logStudentNameToSheet(studentName) {
+    const data = new URLSearchParams();
+    data.append("name", studentName);
+    data.append("tool", "Energy3D Electricity Cost Calculator");
+    data.append("page", window.location.href);
 
-  // ✅ Send name to Google Sheet
-  logStudentNameToSheet(studentName);
-}
+    fetch(SHEET_WEBAPP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: data.toString()
+    }).catch(() => {});
+  }
 
+  // --- Name Gate (locks page until a name is entered) ---
+  function lockPage() {
+    document.body.classList.add("page-locked");
+    document.body.style.overflow = "hidden";
+    document.getElementById("name-gate").style.display = "flex";
+  }
 
-  // Put the name into the main page box
-  document.getElementById('student-name').value = studentName;
-}
-const SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw_FJpAiEAwYRn3JkBXmSanLxjtrrZoaaXgseYQzAywXlGzXle7zkLelttjWUv66HqZ/exec";
+  function unlockPage(studentName) {
+    document.body.classList.remove("page-locked");
+    document.body.style.overflow = "";
+    document.getElementById("name-gate").style.display = "none";
 
-function logStudentNameToSheet(studentName) {
-  const data = new URLSearchParams();
-  data.append("name", studentName);
-  data.append("tool", "Energy3D Electricity Cost Calculator");
-  data.append("page", window.location.href);
+    // Put the name into the main page box
+    document.getElementById("student-name").value = studentName;
 
-  fetch(SHEET_WEBAPP_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: data.toString()
+    // Send name to Google Sheet
+    logStudentNameToSheet(studentName);
+  }
+
+  window.addEventListener("load", () => {
+    // Always clear the student name on refresh
+    document.getElementById("student-name").value = "";
+
+    // Start locked
+    lockPage();
+
+    const gateInput = document.getElementById("name-gate-input");
+    const gateBtn = document.getElementById("name-gate-btn");
+
+    const refreshButtonState = () => {
+      gateBtn.disabled = gateInput.value.trim().length === 0;
+    };
+
+    // ✅ Important: run once so it updates if browser autofills
+    refreshButtonState();
+
+    gateInput.addEventListener("input", refreshButtonState);
+
+    gateBtn.addEventListener("click", () => {
+      const name = gateInput.value.trim();
+      if (!name) return;
+      unlockPage(name);
+    });
+
+    // allow Enter key
+    gateInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !gateBtn.disabled) gateBtn.click();
+    });
+
+    // focus cursor immediately
+    setTimeout(() => gateInput.focus(), 50);
   });
-}
 
+  // ---------------------------
+  // The rest of your calculator code stays the same
+  // ---------------------------
 
-window.addEventListener('load', () => {
-  // Always clear the student name on refresh
-  document.getElementById('student-name').value = '';
+  let comparisonType = "shapes";
 
-  // Start locked
-  lockPage();
-
-  const gateInput = document.getElementById('name-gate-input');
-  const gateBtn = document.getElementById('name-gate-btn');
-
-  const refreshButtonState = () => {
-    gateBtn.disabled = gateInput.value.trim().length === 0;
+  const houseLabels = {
+    shapes: { h1: "T-Shaped House", h2: "Rectangular House" },
+    sizes: { h1: "Large House", h2: "Small House" },
+    insulation: { h1: "Thick Insulation", h2: "Thin Insulation" },
+    colors: { h1: "Dark Roof House", h2: "Light Roof House" },
+    orientation: { h1: "North-South House", h2: "East-West House" },
+    thermostat: { h1: "High Setting (72°F)", h2: "Low Setting (68°F)" }
   };
 
-  gateInput.addEventListener('input', refreshButtonState);
+  function selectComparison(type, btnElement) {
+    comparisonType = type;
 
-  gateBtn.addEventListener('click', () => {
-    const name = gateInput.value.trim();
-    if (!name) return;
-    unlockPage(name);
-  });
+    document.querySelectorAll(".compare-btn").forEach(btn => btn.classList.remove("active"));
+    btnElement.classList.add("active");
 
-  // allow Enter key
-  gateInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !gateBtn.disabled) gateBtn.click();
-  });
+    const labels = houseLabels[type];
+    document.getElementById("comparison-text").textContent =
+      document.querySelector(".compare-btn.active .btn-label").textContent.replace("\n", " ");
 
-  // focus cursor immediately
-  setTimeout(() => gateInput.focus(), 50);
-});
+    document.getElementById("house1-title").textContent = "🏠 " + labels.h1;
+    document.getElementById("house2-title").textContent = "🏠 " + labels.h2;
 
+    document.getElementById("result-house1-title").textContent = labels.h1;
+    document.getElementById("result-house2-title").textContent = labels.h2;
 
-        let comparisonType = 'shapes';
+    resetResults();
+  }
 
-        // House labels configuration
-        const houseLabels = {
-            shapes: { h1: "T-Shaped House", h2: "Rectangular House" },
-            sizes: { h1: "Large House", h2: "Small House" },
-            insulation: { h1: "Thick Insulation", h2: "Thin Insulation" },
-            colors: { h1: "Dark Roof House", h2: "Light Roof House" },
-            orientation: { h1: "North-South House", h2: "East-West House" },
-            thermostat: { h1: "High Setting (72°F)", h2: "Low Setting (68°F)" }
-        };
+  function updateRate() {
+    const select = document.getElementById("state-select");
+    const customInput = document.getElementById("custom-rate-input");
+    const display = document.getElementById("rate-display");
 
-        // Handle Comparison Selection
-        function selectComparison(type, btnElement) {
-            comparisonType = type;
+    if (select.value === "custom") {
+      customInput.style.display = "inline-block";
+      currentRate = parseFloat(customInput.value) || 0;
+    } else {
+      customInput.style.display = "none";
+      currentRate = parseFloat(select.value);
+    }
 
-            // Update active button visual
-            document.querySelectorAll('.compare-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
+    display.textContent = `$${currentRate.toFixed(2)}/kWh`;
+    if (hasData()) calculateAll();
+  }
 
-            // Update text labels
-            const labels = houseLabels[type];
-            document.getElementById('comparison-text').textContent = document.querySelector('.compare-btn.active .btn-label').textContent.replace('\n', ' ');
+  function updateCustomRate() {
+    const input = document.getElementById("custom-rate-input");
+    currentRate = parseFloat(input.value) || 0;
+    document.getElementById("rate-display").textContent = `$${currentRate.toFixed(2)}/kWh`;
+    if (hasData()) calculateAll();
+  }
 
-            // Update House Input Titles
-            document.getElementById('house1-title').textContent = '🏠 ' + labels.h1;
-            document.getElementById('house2-title').textContent = '🏠 ' + labels.h2;
+  function hasData() {
+    return document.getElementById("house1-jan").value &&
+           document.getElementById("house1-jul").value;
+  }
 
-            // Update Result Titles
-            document.getElementById('result-house1-title').textContent = labels.h1;
-            document.getElementById('result-house2-title').textContent = labels.h2;
+  function resetResults() {
+    const zeros = ["$0.00", "$0.00", "$0.00"];
+    ["house1", "house2"].forEach(house => {
+      document.getElementById(`${house}-daily`).textContent = zeros[0];
+      document.getElementById(`${house}-monthly`).textContent = zeros[1];
+      document.getElementById(`${house}-annual`).textContent = zeros[2];
+      document.getElementById(`${house}-bar`).style.width = "0%";
+    });
+    document.getElementById("savings-daily").textContent = "$0.00";
+    document.getElementById("savings-monthly").textContent = "$0.00";
+    document.getElementById("savings-annual").textContent = "$0.00";
+    document.getElementById("winner-text").textContent =
+      "Enter all four energy values to see which design saves money!";
+    document.getElementById("winner-text").style.background = "#2ecc71";
+    document.getElementById("winner-text").style.color = "white";
+  }
 
-            // Clear previous results to avoid confusion
-            resetResults();
-        }
+  function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const currentVal = start + (end - start) * progress;
+      obj.textContent = formatMoney(currentVal);
+      if (progress < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+  }
 
-        // Handle Rate Changes
-        function updateRate() {
-            const select = document.getElementById('state-select');
-            const customInput = document.getElementById('custom-rate-input');
-            const display = document.getElementById('rate-display');
+  function calculateAll() {
+    const h1Jan = parseFloat(document.getElementById("house1-jan").value) || 0;
+    const h1Jul = parseFloat(document.getElementById("house1-jul").value) || 0;
+    const h2Jan = parseFloat(document.getElementById("house2-jan").value) || 0;
+    const h2Jul = parseFloat(document.getElementById("house2-jul").value) || 0;
 
-            if (select.value === 'custom') {
-                customInput.style.display = 'inline-block';
-                currentRate = parseFloat(customInput.value) || 0;
-            } else {
-                customInput.style.display = 'none';
-                currentRate = parseFloat(select.value);
-            }
+    const h1AvgDailyKwh = (h1Jan + h1Jul) / 2;
+    const h2AvgDailyKwh = (h2Jan + h2Jul) / 2;
 
-            display.textContent = `$${currentRate.toFixed(2)}/kWh`;
+    const h1DailyCost = h1AvgDailyKwh * currentRate;
+    const h1MonthlyCost = h1DailyCost * 30;
+    const h1AnnualCost = h1DailyCost * 365;
 
-            // Recalculate if data exists
-            if (hasData()) calculateAll();
-        }
+    const h2DailyCost = h2AvgDailyKwh * currentRate;
+    const h2MonthlyCost = h2DailyCost * 30;
+    const h2AnnualCost = h2DailyCost * 365;
 
-        function updateCustomRate() {
-            const input = document.getElementById('custom-rate-input');
-            currentRate = parseFloat(input.value) || 0;
-            document.getElementById('rate-display').textContent = `$${currentRate.toFixed(2)}/kWh`;
-            if (hasData()) calculateAll();
-        }
+    animateValue(document.getElementById("house1-daily"), 0, h1DailyCost, 800);
+    animateValue(document.getElementById("house1-monthly"), 0, h1MonthlyCost, 800);
+    animateValue(document.getElementById("house1-annual"), 0, h1AnnualCost, 800);
 
-        // Check if inputs have values
-        function hasData() {
-            return document.getElementById('house1-jan').value &&
-                   document.getElementById('house1-jul').value;
-        }
+    animateValue(document.getElementById("house2-daily"), 0, h2DailyCost, 800);
+    animateValue(document.getElementById("house2-monthly"), 0, h2MonthlyCost, 800);
+    animateValue(document.getElementById("house2-annual"), 0, h2AnnualCost, 800);
 
-        function resetResults() {
-            const zeros = ['$0.00', '$0.00', '$0.00'];
-            ['house1', 'house2'].forEach(house => {
-                document.getElementById(`${house}-daily`).textContent = zeros[0];
-                document.getElementById(`${house}-monthly`).textContent = zeros[1];
-                document.getElementById(`${house}-annual`).textContent = zeros[2];
-                document.getElementById(`${house}-bar`).style.width = '0%';
-            });
-            document.getElementById('savings-daily').textContent = '$0.00';
-            document.getElementById('savings-monthly').textContent = '$0.00';
-            document.getElementById('savings-annual').textContent = '$0.00';
-            document.getElementById('winner-text').textContent = "Enter all four energy values to see which design saves money!";
-            document.getElementById('winner-text').style.background = '#2ecc71';
-            document.getElementById('winner-text').style.color = 'white';
-        }
+    const maxCost = Math.max(h1AnnualCost, h2AnnualCost, 1);
+    document.getElementById("house1-bar").style.width = `${(h1AnnualCost / maxCost) * 100}%`;
+    document.getElementById("house2-bar").style.width = `${(h2AnnualCost / maxCost) * 100}%`;
 
-        // Animate count up for numbers
-        function animateValue(obj, start, end, duration) {
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const currentVal = start + (end - start) * progress;
-                obj.textContent = formatMoney(currentVal);
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
+    const dailyDiff = Math.abs(h1DailyCost - h2DailyCost);
+    const monthlyDiff = Math.abs(h1MonthlyCost - h2MonthlyCost);
+    const annualDiff = Math.abs(h1AnnualCost - h2AnnualCost);
 
-        // Main Calculation Function
-        function calculateAll() {
-            // Get inputs
-            const h1Jan = parseFloat(document.getElementById('house1-jan').value) || 0;
-            const h1Jul = parseFloat(document.getElementById('house1-jul').value) || 0;
-            const h2Jan = parseFloat(document.getElementById('house2-jan').value) || 0;
-            const h2Jul = parseFloat(document.getElementById('house2-jul').value) || 0;
+    animateValue(document.getElementById("savings-daily"), 0, dailyDiff, 1000);
+    animateValue(document.getElementById("savings-monthly"), 0, monthlyDiff, 1000);
+    animateValue(document.getElementById("savings-annual"), 0, annualDiff, 1000);
 
-            // 1. Calculate Averages (Daily kWh)
-            const h1AvgDailyKwh = (h1Jan + h1Jul) / 2;
-            const h2AvgDailyKwh = (h2Jan + h2Jul) / 2;
+    const winnerDiv = document.getElementById("winner-text");
+    const labels = houseLabels[comparisonType];
+    winnerDiv.style.color = "white";
 
-            // 2. Calculate Costs
-            const h1DailyCost = h1AvgDailyKwh * currentRate;
-            const h1MonthlyCost = h1DailyCost * 30;
-            const h1AnnualCost = h1DailyCost * 365;
+    if (h1AnnualCost < h2AnnualCost) {
+      winnerDiv.innerHTML = `🏆 The <strong>${labels.h1}</strong> saves you <strong>${formatMoney(annualDiff)}</strong> per year!`;
+      winnerDiv.style.background = "#e74c3c";
+    } else if (h2AnnualCost < h1AnnualCost) {
+      winnerDiv.innerHTML = `🏆 The <strong>${labels.h2}</strong> saves you <strong>${formatMoney(annualDiff)}</strong> per year!`;
+      winnerDiv.style.background = "#3498db";
+    } else if (h1AnnualCost === 0 && h2AnnualCost === 0) {
+      winnerDiv.textContent = "Please enter energy values above.";
+      winnerDiv.style.background = "#95a5a6";
+    } else {
+      winnerDiv.textContent = "Both houses cost exactly the same!";
+      winnerDiv.style.background = "#f1c40f";
+      winnerDiv.style.color = "#333";
+    }
+  }
 
-            const h2DailyCost = h2AvgDailyKwh * currentRate;
-            const h2MonthlyCost = h2DailyCost * 30;
-            const h2AnnualCost = h2DailyCost * 365;
+  function formatMoney(amount) {
+    return "$" + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+</script>
 
-            // 3. Update DOM with Animations
-            // House 1
-            animateValue(document.getElementById('house1-daily'), 0, h1DailyCost, 800);
-            animateValue(document.getElementById('house1-monthly'), 0, h1MonthlyCost, 800);
-            animateValue(document.getElementById('house1-annual'), 0, h1AnnualCost, 800);
-
-            // House 2
-            animateValue(document.getElementById('house2-daily'), 0, h2DailyCost, 800);
-            animateValue(document.getElementById('house2-monthly'), 0, h2MonthlyCost, 800);
-            animateValue(document.getElementById('house2-annual'), 0, h2AnnualCost, 800);
-
-            // 4. Update Visual Bars (Annual Cost as reference)
-            const maxCost = Math.max(h1AnnualCost, h2AnnualCost, 1); // Avoid div by zero
-            document.getElementById('house1-bar').style.width = `${(h1AnnualCost / maxCost) * 100}%`;
-            document.getElementById('house2-bar').style.width = `${(h2AnnualCost / maxCost) * 100}%`;
-
-            // 5. Calculate Savings
-            const dailyDiff = Math.abs(h1DailyCost - h2DailyCost);
-            const monthlyDiff = Math.abs(h1MonthlyCost - h2MonthlyCost);
-            const annualDiff = Math.abs(h1AnnualCost - h2AnnualCost);
-
-            animateValue(document.getElementById('savings-daily'), 0, dailyDiff, 1000);
-            animateValue(document.getElementById('savings-monthly'), 0, monthlyDiff, 1000);
-            animateValue(document.getElementById('savings-annual'), 0, annualDiff, 1000);
-
-            // 6. Determine Winner
-            const winnerDiv = document.getElementById('winner-text');
-            const labels = houseLabels[comparisonType];
-
-            winnerDiv.style.color = 'white';
-
-            if (h1AnnualCost < h2AnnualCost) {
-                winnerDiv.innerHTML = `🏆 The <strong>${labels.h1}</strong> saves you <strong>${formatMoney(annualDiff)}</strong> per year!`;
-                winnerDiv.style.background = '#e74c3c'; // Red/Pink to match House 1
-            } else if (h2AnnualCost < h1AnnualCost) {
-                winnerDiv.innerHTML = `🏆 The <strong>${labels.h2}</strong> saves you <strong>${formatMoney(annualDiff)}</strong> per year!`;
-                winnerDiv.style.background = '#3498db'; // Blue to match House 2
-            } else if (h1AnnualCost === 0 && h2AnnualCost === 0) {
-                 winnerDiv.textContent = "Please enter energy values above.";
-                 winnerDiv.style.background = '#95a5a6';
-            } else {
-                winnerDiv.textContent = "Both houses cost exactly the same!";
-                winnerDiv.style.background = '#f1c40f';
-                winnerDiv.style.color = '#333';
-            }
-        }
-
-        function formatMoney(amount) {
-            return '$' + amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        }
-    </script>
 </body>
 </html>
+
 
 
 
