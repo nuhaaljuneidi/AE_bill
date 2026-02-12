@@ -635,9 +635,86 @@
                 grid-template-columns: 1fr;
             }
         }
+        /* Lock everything until student enters name */
+.page-locked .container {
+  pointer-events: none;
+  opacity: 0.25;
+  filter: blur(0.3px);
+}
+
+.name-gate {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.name-gate-card {
+  width: min(520px, 92vw);
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 14px 50px rgba(0,0,0,0.35);
+  text-align: center;
+}
+
+.name-gate-card h2 {
+  margin: 0 0 10px 0;
+  color: #2d3748;
+  font-size: 1.4rem;
+}
+
+.name-gate-card p {
+  margin: 0 0 14px 0;
+  color: #4a5568;
+}
+
+.name-gate-card input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.name-gate-card input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102,126,234,0.12);
+}
+
+.name-gate-card button {
+  margin-top: 14px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.name-gate-card button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
     </style>
 </head>
 <body>
+    <div id="name-gate" class="name-gate" aria-modal="true" role="dialog">
+  <div class="name-gate-card">
+    <h2>👤 Enter your name to begin</h2>
+    <p>Please type your name first. Then the calculator will unlock.</p>
+    <input id="name-gate-input" type="text" placeholder="Your name..." autocomplete="off">
+    <button id="name-gate-btn" disabled>Start</button>
+  </div>
+</div>
+
     <div class="container">
         <!-- HEADER -->
         <div class="header-section">
@@ -1010,6 +1087,57 @@
     <script>
         // State management
         let currentRate = 0.14;
+        // Always clear name field on refresh
+        window.addEventListener('load', () => {
+            const nameInput = document.getElementById('student-name');
+            if (nameInput) nameInput.value = '';
+        });
+        // --- Name Gate (locks page until a name is entered) ---
+function lockPage() {
+  document.body.classList.add('page-locked');
+  document.getElementById('name-gate').style.display = 'flex';
+}
+
+function unlockPage(studentName) {
+  document.body.classList.remove('page-locked');
+  document.getElementById('name-gate').style.display = 'none';
+
+  // Put the name into your existing input box
+  document.getElementById('student-name').value = studentName;
+}
+
+window.addEventListener('load', () => {
+  // Always clear the student name on refresh
+  document.getElementById('student-name').value = '';
+
+  // Start locked
+  lockPage();
+
+  const gateInput = document.getElementById('name-gate-input');
+  const gateBtn = document.getElementById('name-gate-btn');
+
+  const refreshButtonState = () => {
+    gateBtn.disabled = gateInput.value.trim().length === 0;
+  };
+
+  gateInput.addEventListener('input', refreshButtonState);
+
+  gateBtn.addEventListener('click', () => {
+    const name = gateInput.value.trim();
+    if (!name) return;
+    unlockPage(name);
+  });
+
+  // allow Enter key
+  gateInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !gateBtn.disabled) gateBtn.click();
+  });
+
+  // focus cursor immediately
+  setTimeout(() => gateInput.focus(), 50);
+});
+
+
         let comparisonType = 'shapes';
 
         // House labels configuration
@@ -1184,3 +1312,4 @@
     </script>
 </body>
 </html>
+
