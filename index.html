@@ -719,7 +719,7 @@
         <!-- HEADER -->
         <div class="header-section">
             <div class="creator-info">
-                <span class="creator-name">Dr. Nuha AlJuneidi</span>
+                <span class="creator-name">Developed by: Dr. Nuha AlJuneidi</span>
                 <span class="creator-divider">|</span>
                 <span>Lawrence Technological University</span>
                 <span class="creator-divider">|</span>
@@ -1085,6 +1085,7 @@
     </div>
 
     <script>
+        
         // State management
         let currentRate = 0.14;
      
@@ -1097,11 +1098,33 @@ function lockPage() {
 
 function unlockPage(studentName) {
   document.body.classList.remove('page-locked');
-  document.body.style.overflow = ''; // restore scrolling
+  document.body.style.overflow = '';
   document.getElementById('name-gate').style.display = 'none';
+
+  document.getElementById('student-name').value = studentName;
+
+  // ✅ Send name to Google Sheet
+  logStudentNameToSheet(studentName);
+}
+
 
   // Put the name into the main page box
   document.getElementById('student-name').value = studentName;
+}
+const SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw_FJpAiEAwYRn3JkBXmSanLxjtrrZoaaXgseYQzAywXlGzXle7zkLelttjWUv66HqZ/exec";
+
+function logStudentNameToSheet(studentName) {
+  const data = new URLSearchParams();
+  data.append("name", studentName);
+  data.append("tool", "Energy3D Electricity Cost Calculator");
+  data.append("page", window.location.href);
+
+  fetch(SHEET_WEBAPP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: data.toString()
+  });
 }
 
 
@@ -1311,5 +1334,6 @@ window.addEventListener('load', () => {
     </script>
 </body>
 </html>
+
 
 
